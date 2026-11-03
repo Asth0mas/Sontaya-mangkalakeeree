@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oak Sphere | Admin Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 77, 83, 0.6); backdrop-filter: blur(4px); z-index: 9999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .custom-modal-box { background: #ffffff; padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; transform: translateY(20px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); transition: transform 0.3s ease; }
+        .custom-modal-box h3 { margin-top: 0; color: #144d53; font-size: 1.25rem; } .custom-modal-box p { color: #555; margin-bottom: 24px; line-height: 1.5; }
+        .custom-modal-actions { display: flex; gap: 12px; justify-content: center; } .custom-modal-overlay.show { display: flex; opacity: 1; } .custom-modal-overlay.show .custom-modal-box { transform: translateY(0); }
+        .admin-hero-layout { display: flex; gap: 32px; flex-wrap: wrap; align-items: stretch; width: 100%; }
+        .admin-hero-left { flex: 1; min-width: 350px; display: flex; flex-direction: column; justify-content: center; }
+        .admin-hero-right { flex: 2.5; min-width: 450px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 32px; display: flex; flex-direction: column; justify-content: center; width: 100%; }
+        @media (max-width: 768px) { .admin-hero-right { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 24px; margin-top: 8px; flex: 1;} }
+    </style>
+</head>
+<body data-page="admin">
+    <div class="app-layout">
+        
+        <header class="mobile-top-header">
+            <div class="mobile-brand">
+                <img src="../assets/images/001.svg" alt="Logo" width="28">
+                <strong style="color: #144d53; font-size: 1.1rem;">Oak Sphere</strong>
+            </div>
+            <div class="mobile-actions" style="display: flex; gap: 8px; align-items: center;">
+                <span class="status-pill admin" style="padding: 4px 10px; font-size: 0.75rem;">ผู้ดูแลระบบ</span>
+                <a href="../login.php" class="button-outline" style="padding: 6px 12px; font-size: 0.8rem;">ออก</a>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-mark"><img src="../assets/images/001.svg" alt="Oak Sphere Logo"></div>
+                <div class="brand-copy">
+                    <strong>Oak Sphere</strong>
+                    <span>Admin Control</span>
+                </div>
+            </div>
+            
+            <ul class="sidebar-nav">
+                <li class="nav-item active" data-target="page-overview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span class="nav-label">ภาพรวม</span>
+                </li>
+                <li class="nav-item" data-target="page-analytics">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span class="nav-label">วิเคราะห์</span>
+                </li>
+                <li class="nav-item" data-target="page-settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span class="nav-label">ตั้งค่าและควบคุม</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <span class="status-pill admin" style="justify-content: center; width: 100%; margin-bottom: 12px;">ผู้ดูแลระบบ</span>
+                <a href="../login.php" class="button-outline" style="text-align: center; display: block; width: 100%;">ออกจากระบบ</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <div id="page-overview" class="page-view active">
+                <div class="page-header">
+                    <h2>ภาพรวมระบบ</h2>
+                </div>
+                
+                <section class="summary-banner" id="overview-banner" style="padding: 0; background: none; width: 100%; display: block; margin-bottom: 24px;">
+                    <div style="background: #2b6e63; border-radius: 16px; padding: 32px; width: 100%; box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <div class="admin-hero-layout">
+                            <div class="admin-hero-left">
+                                <div style="margin-bottom: 24px;"><span style="font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; color: #a7f3d0; text-transform: uppercase;">SYSTEM STATUS</span><h2 style="margin-top: 8px; font-size: 1.8rem; color: #ffffff;">สถานะการทำงานปัจจุบัน</h2></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px;">
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px);">
+                                        <div style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 8px;">โหมดปัจจุบัน</div>
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white; line-height: 1.2;" id="modeValue">ควบคุมอัตโนมัติ</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px);">
+                                        <div style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 8px;">รอบปลูกปัจจุบัน</div>
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white; line-height: 1.2;" id="summaryCycleDays">0 วัน</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px);">
+                                        <div style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 8px;">ดัชนีความพร้อม</div>
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white; line-height: 1.2;" id="summaryReadiness">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-hero-right">
+                                <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px; font-weight: 600;">สถานะอุปกรณ์ปัจจุบัน</h3>
+                                <div id="deviceStateList" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <div class="overview-grid" style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr); gap: 24px; align-items: start;">
+                    <div class="panel">
+                        <div class="panel-body">
+                            <div class="section-heading compact-heading">
+                                <div>
+                                    <span class="eyebrow">Real-time Data</span>
+                                    <h2>ค่าเซ็นเซอร์ปัจจุบัน</h2>
+                                </div>
+                                <div class="meta" id="sensorHealthMeta"></div>
+                            </div>
+                            <div class="sensor-status-grid" id="mainSensorGrid"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-body">
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: #2d3436; margin-top: 0; margin-bottom: 24px;">ความพร้อมเก็บเกี่ยว</h3>
+                            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">
+                                <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#307672 0deg, #e9ecef 0deg); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; margin: 0 auto;" id="harvestRing">
+                                    <div style="width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                        <strong id="harvestReadiness" style="font-size: 1.8rem; font-weight: 800; color: #144d53; line-height: 1;">0%</strong>
+                                        <span style="font-size: 0.65rem; font-weight: 700; color: #144d53; margin-top: 4px;">Readiness</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                                <div style="border: 1px solid #eaeaea; border-radius: 12px; padding: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #2d3436;"><span>ดัชนีความร้อน (GDD)</span><strong id="gddValue">0%</strong></div><div style="height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;"><div id="factorGdd" style="height: 100%; width: 0%; background: #e6e6e6; transition: width 0.5s ease;"></div></div></div>
+                                <div style="border: 1px solid #eaeaea; border-radius: 12px; padding: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #2d3436;"><span>ความสูงทรงพุ่ม</span><strong id="heightValue">0%</strong></div><div style="height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;"><div id="factorHeight" style="height: 100%; width: 0%; background: #e6e6e6; transition: width 0.5s ease;"></div></div></div>
+                                <div style="border: 1px solid #eaeaea; border-radius: 12px; padding: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #2d3436;"><span>อัตราการใช้น้ำ</span><strong id="waterValue">0%</strong></div><div style="height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;"><div id="factorWater" style="height: 100%; width: 0%; background: #e6e6e6; transition: width 0.5s ease;"></div></div></div>
+                            </div>
+                            <div id="harvestStatusBadge" style="background: #f1f3f5; color: #144d53; padding: 12px; border-radius: 12px; text-align: center; font-size: 0.9rem; font-weight: 700;">กำลังติดตามการเติบโต</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-analytics" class="page-view">
+                <div class="page-header">
+                    <h2>วิเคราะห์ข้อมูล (Analytics)</h2>
+                    <p class="muted">ดูประวัติสถิติย้อนหลัง และจัดการรอบการเพาะปลูก</p>
+                </div>
+
+                <div style="display: grid; gap: 24px;">
+                    <div class="panel" id="history">
+                        <div class="panel-body">
+                            <div class="section-heading" style="margin-bottom: 12px;">
+                                <div><span class="eyebrow">History & Analytics</span><h2>ข้อมูลสภาพแวดล้อมย้อนหลัง</h2></div>
+                            </div>
+                            
+                            <div class="chart-toolbar" style="margin-bottom: 12px;">
+                                <div class="chart-form">
+                                    <input id="historyStart" type="date">
+                                    <input id="historyEnd" type="date">
+                                    <button class="button-soft" id="applyHistoryFilter" type="button">ค้นหา</button>
+                                    <button class="button-outline" id="resetHistoryFilter" type="button">ดูแบบ Real-time</button>
+                                </div>
+                                
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <div class="segmented" id="viewToggleGroup" style="display: none;">
+                                        <button class="segment active" id="viewChartBtn" type="button">📊 กราฟ</button>
+                                        <button class="segment" id="viewTableBtn" type="button">📋 ตาราง</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chart-shell" id="chartContainer" style="height: 280px;">
+                                <canvas id="environmentChart"></canvas>
+                            </div>
+
+                            <div id="tableContainer" style="display: none; margin-top: 16px;">
+                                <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.85rem; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <strong style="color: var(--secondary);">เลือกดูข้อมูล:</strong>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="checkbox" class="col-toggle" value="temp" checked> อุณหภูมิ</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="checkbox" class="col-toggle" value="humidity" checked> ความชื้นอากาศ</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="checkbox" class="col-toggle" value="soil" checked> ความชื้นดิน</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="checkbox" class="col-toggle" value="light" checked> แสง</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;"><input type="checkbox" class="col-toggle" value="height" checked> ความสูง</label>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>วัน-เวลา</th>
+                                                <th data-col="temp">อุณหภูมิ (°C)</th>
+                                                <th data-col="humidity">ความชื้นอากาศ (%RH)</th>
+                                                <th data-col="soil">ความชื้นดิน (%)</th>
+                                                <th data-col="light">แสง (Lux)</th>
+                                                <th data-col="height">ความสูง (cm)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-soft);">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="controls">
+                        <div class="panel-body">
+                            <div class="section-heading" style="margin-bottom: 12px;">
+                                <div><span class="eyebrow">Crop Cycle</span><h2>จัดการรอบการเพาะปลูก</h2></div>
+                            </div>
+                            <form class="form-stack" id="cropForm" style="margin-top: 0;">
+                                <input id="cropStartDate" type="hidden">
+                                <div class="inline-actions">
+                                    <button class="button-soft" type="submit">เริ่มรอบการปลูกใหม่</button>
+                                    <button class="button-outline" type="button" onclick="document.getElementById('endCropModal').classList.add('show');" id="endCropBtn" style="border-color: #e74c3c; color: #e74c3c;">จบรอบการปลูก</button>
+                                </div>
+                            </form>
+                            <div class="crop-meta" style="margin-top: 16px;">
+                                <div class="crop-chip" style="padding: 12px;"><span>ระยะเวลาปลูก</span><strong id="cycleDays" style="font-size: 1.1rem;">0 วัน</strong></div>
+                                <div class="crop-chip" style="padding: 12px;"><span>ช่วงอายุปัจจุบัน</span><strong id="cycleStage" style="font-size: 1.1rem;">ระยะต้นกล้า</strong></div>
+                                <div class="crop-chip" style="padding: 12px;"><span>สถานะการเก็บเกี่ยว</span><strong id="cycleHarvest" style="font-size: 1.1rem;">-</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="page-view">
+                <div class="page-header">
+                    <h2>ตั้งค่าและควบคุม (Settings & Control)</h2>
+                </div>
+
+                <div class="settings-layout">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 24px; height: 100%;">
+                        <div class="panel" style="flex: 1;">
+                            <div class="panel-body">
+                                <h3>โหมดการทำงานของระบบ</h3>
+                                <div class="mode-grid">
+                                    <button class="mode-button active" data-mode="auto" type="button"><strong>โหมดควบคุมอัตโนมัติ</strong><span>ให้ทำงานตามพารามิเตอร์ที่ตั้งค่า</span></button>
+                                    <button class="mode-button" data-mode="manual" type="button"><strong>โหมดควบคุมด้วยตนเอง</strong><span>สั่งการเปิด-ปิดอุปกรณ์ด้วยตัวเอง</span></button>
+                                    <button class="mode-button" data-mode="standby" type="button"><strong>โหมดพักระบบ</strong><span>หยุดการทำงานของอุปกรณ์ทุกชนิด</span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel" id="telegramPanel">
+                            <div class="panel-body">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 style="margin: 0;">Telegram Alert Preview</h3>
+                                    <button type="button" onclick="testTelegramAlert()" style="background: none; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">ทดสอบส่ง</button>
+                                </div>
+                                <div class="alert-feed" id="alertFeed"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 24px; height: 100%;">
+                        
+                        <div class="panel" id="autoParametersPanel">
+                            <div class="panel-body">
+                                <div class="section-heading">
+                                    <div><span class="eyebrow">Parameters</span><h2>ตั้งค่าพารามิเตอร์</h2></div>
+                                </div>
+                                <form class="form-stack" id="settingsForm">
+                                    
+                                    <div class="setting-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                                                                               
+                                        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                            <h4 style="margin: 0 0 8px; color: #307672; font-size: 0.95rem;">อุณหภูมิอากาศ (°C)</h4>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                <div class="field"><label style="font-size: 0.75rem;">ต่ำสุด (Min)</label><input id="tempMin" type="number" min="0" max="50" step="0.1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                                <div class="field"><label style="font-size: 0.75rem;">สูงสุด (Max)</label><input id="tempMax" type="number" min="0" max="50" step="0.1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                            <h4 style="margin: 0 0 8px; color: #307672; font-size: 0.95rem;">ความชื้นอากาศ (%RH)</h4>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                <div class="field"><label style="font-size: 0.75rem;">ต่ำสุด (Min)</label><input id="humidityMin" type="number" min="0" max="100" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                                <div class="field"><label style="font-size: 0.75rem;">สูงสุด (Max)</label><input id="humidityMax" type="number" min="0" max="100" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                            <h4 style="margin: 0 0 8px; color: #307672; font-size: 0.95rem;">ความชื้นดิน (%)</h4>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                <div class="field"><label style="font-size: 0.75rem;">ต่ำสุด (Min)</label><input id="soilMin" type="number" min="0" max="100" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                                <div class="field"><label style="font-size: 0.75rem;">สูงสุด (Max)</label><input id="soilMax" type="number" min="0" max="100" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                            <h4 style="margin: 0 0 8px; color: #307672; font-size: 0.95rem;">ชั่วโมงการเปิดไฟ LED</h4>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                <div class="field"><label style="font-size: 0.75rem;">ระยะต้นกล้า (ชม.)</label><input id="seedlingLightOn" type="number" min="1" max="24" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                                <div class="field"><label style="font-size: 0.75rem;">ระยะเติบโต (ชม.)</label><input id="growthLightOn" type="number" min="1" max="24" step="1" style="padding: 8px 10px; border-radius: 8px; font-size: 0.9rem;"></div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="inline-actions" style="margin-top: 12px;">
+                                        <button class="button-soft" type="submit" style="flex: 1; padding: 10px 16px;">บันทึกค่าพารามิเตอร์</button>
+                                        <button class="button-outline" type="button" onclick="openResetModal()" style="padding: 10px 16px;">รีเซ็ตค่า</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="panel" id="manualControlPanel" style="display: none;">
+                            <div class="panel-body">
+                                <h3>แผงควบคุมอุปกรณ์ (Manual)</h3>
+                                <p class="muted" style="margin-bottom: 12px; font-size: 0.85rem;">เปิด-ปิดอุปกรณ์ด้วยตัวเองผ่านหน้าเว็บ</p>
+                                <div class="control-grid">
+                                    <div class="device-toggle"><div><strong>ชุดทำความเย็น</strong><div class="helper-note">Peltier ควบคุมอุณหภูมิ</div></div><label class="toggle"><input id="toggle-cooling" data-manual-control type="checkbox"><span class="toggle-slider"></span></label></div>
+                                    <div class="device-toggle"><div><strong>พัดลมระบายอากาศ</strong><div class="helper-note">พัดลมดูดอากาศ</div></div><label class="toggle"><input id="toggle-fan" data-manual-control type="checkbox"><span class="toggle-slider"></span></label></div>
+                                    <div class="device-toggle"><div><strong>เครื่องพ่นหมอก</strong><div class="helper-note">Ultrasonic ควบคุมความชื้น</div></div><label class="toggle"><input id="toggle-mist" data-manual-control type="checkbox"><span class="toggle-slider"></span></label></div>
+                                    <div class="device-toggle"><div><strong>หลอดไฟ LED</strong><div class="helper-note">Grow Light</div></div><label class="toggle"><input id="toggle-led" data-manual-control type="checkbox"><span class="toggle-slider"></span></label></div>
+                                    <div class="device-toggle"><div><strong>ปั๊มน้ำ</strong><div class="helper-note">ปั๊มน้ำรดความชื้นดิน</div></div><label class="toggle"><input id="toggle-pump" data-manual-control type="checkbox"><span class="toggle-slider"></span></label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <div id="endCropModal" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <h3 style="color: #e74c3c;">⚠️ ยืนยันจบรอบการปลูก</h3>
+            <p style="margin-bottom: 16px;">คุณแน่ใจหรือไม่ที่จะจบรอบการปลูกปัจจุบัน?<br>ข้อมูลวันที่ของรอบนี้จะถูกบันทึกเป็นประวัติและ <b>ไม่สามารถย้อนกลับได้</b></p>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #e2e8f0; text-align: left;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block;">พิมพ์คำว่า <span style="color:#e74c3c;">ยืนยัน</span> เพื่อดำเนินการต่อ</label>
+                <input type="text" id="confirmEndInput" placeholder="พิมพ์ ยืนยัน ที่นี่..." onkeyup="checkEndCropInput()" style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 1rem; color: #1e293b; box-sizing: border-box;">
+            </div>
+
+            <div class="custom-modal-actions">
+                <button class="button-outline" onclick="closeEndCropModalSafe()">ยกเลิก</button>
+                <button class="button-soft" id="confirmEndBtn" style="background-color: #cbd5e1; border-color: #cbd5e1; cursor: not-allowed;" disabled onclick="confirmEndCropSafe()">จบรอบการปลูก</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="validationErrorModal" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <h3 style="color: #e74c3c;">⚠️ ข้อมูลไม่ถูกต้อง</h3>
+            <p id="validationErrorMessage" style="margin-bottom: 24px; color: #555;">ข้อความแจ้งเตือนจะแสดงที่นี่</p>
+            <div class="custom-modal-actions">
+                <button class="button-soft" style="background-color: #d88a22; border-color: #d88a22;" onclick="closeValidationErrorModal()">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="duplicateCropModal" class="custom-modal-overlay"><div class="custom-modal-box"><h3>แจ้งเตือนระบบ</h3><p>มีรอบการเพาะปลูกกำลังดำเนินการอยู่<br>หากต้องการเริ่มรอบใหม่ กรุณากด <strong>"จบรอบการปลูก"</strong> ก่อน</p><div class="custom-modal-actions"><button class="button-soft" style="background-color: #d88a22; border-color: #d88a22;" onclick="closeDuplicateCropModal()">ตกลง</button></div></div></div>
+    <div id="noCropModal" class="custom-modal-overlay"><div class="custom-modal-box"><h3>แจ้งเตือนระบบ</h3><p>ขณะนี้ยังไม่มีรอบการเพาะปลูกที่กำลังทำงานอยู่<br>กรุณาเริ่มรอบการปลูกใหม่</p><div class="custom-modal-actions"><button class="button-soft" style="background-color: #d88a22; border-color: #d88a22;" onclick="closeNoCropModal()">ตกลง</button></div></div></div>
+    <div id="saveSettingsModal" class="custom-modal-overlay"><div class="custom-modal-box"><h3>ยืนยันการดำเนินการ</h3><p>คุณต้องการบันทึกการเปลี่ยนแปลง<br>ค่าพารามิเตอร์สำหรับโหมดอัตโนมัติหรือไม่?</p><div class="custom-modal-actions"><button class="button-outline" onclick="closeSaveSettingsModal()">ยกเลิก</button><button class="button-soft" style="background-color: #307672; border-color: #307672;" onclick="confirmSaveSettings()">ยืนยันบันทึก</button></div></div></div>
+    <div id="resetSettingsModal" class="custom-modal-overlay"><div class="custom-modal-box"><h3>ยืนยันการดำเนินการ</h3><p>คุณต้องการรีเซ็ตพารามิเตอร์ทั้งหมด<br>กลับเป็นค่ามาตรฐานของสลัดเรดโอ๊คหรือไม่?</p><div class="custom-modal-actions"><button class="button-outline" onclick="closeResetModal()">ยกเลิก</button><button class="button-soft" style="background-color: #307672; border-color: #307672;" onclick="confirmResetSettings()">ยืนยันรีเซ็ต</button></div></div></div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() { 
+            loadSettings(); 
+            if (typeof window.loadCropCycle === 'function') { window.loadCropCycle(); }
+            lockHistoryDates(); 
+            lockCropDate(); 
+            
+            const searchBtn = document.getElementById("applyHistoryFilter");
+            if (searchBtn) {
+                searchBtn.addEventListener("click", () => {
+                    const viewGroup = document.getElementById("viewToggleGroup");
+                    if (viewGroup) viewGroup.style.display = "inline-flex";
+                });
+            }
+            
+            const resetBtn = document.getElementById("resetHistoryFilter");
+            if (resetBtn) {
+                resetBtn.addEventListener("click", () => {
+                    const viewGroup = document.getElementById("viewToggleGroup");
+                    if (viewGroup) viewGroup.style.display = "none";
+                });
+            }
+        });
+
+        function lockHistoryDates() { const hStart = document.getElementById('historyStart'), hEnd = document.getElementById('historyEnd'), d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); const tStr = d.toISOString().split('T')[0]; if(hStart) { hStart.max = tStr; if(!hStart.value) hStart.value = tStr; } if(hEnd) { hEnd.max = tStr; if(!hEnd.value) hEnd.value = tStr; } }
+        function lockCropDate() { const cInput = document.getElementById('cropStartDate'); if(cInput) { const tStr = new Date().toISOString().split('T')[0]; cInput.min = tStr; cInput.max = tStr; if(!cInput.value) cInput.value = tStr; } }
+        function toggleCropFormUI(isActive) { const btn = document.querySelector('#cropForm button[type="submit"]'); if (btn) { btn.textContent = isActive ? 'รอบปลูกกำลังทำงาน' : 'เริ่มรอบการปลูกใหม่'; btn.style.opacity = isActive ? '0.8' : '1'; btn.dataset.active = isActive ? 'true' : 'false'; } }
+        
+        document.getElementById('cropForm')?.addEventListener('submit', function(e) { e.preventDefault(); const btn = document.querySelector('#cropForm button[type="submit"]'); if (btn.dataset.active === 'true') { document.getElementById('duplicateCropModal')?.classList.add('show'); return; } const sDate = document.getElementById('cropStartDate').value; if(sDate) { fetch('../api_crop_cycle.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'start', start_date: sDate }) }).then(res => res.json()).then(data => { if(data.status === 'success') { if (typeof appState !== 'undefined') appState.cropStart = sDate; if (typeof storageSet === 'function') storageSet(STORAGE_KEYS.cropStart, sDate); toggleCropFormUI(true); if (typeof window.loadCropCycle === 'function') window.loadCropCycle(); if (typeof showToast === 'function') showToast(data.message); } else { alert(data.message); } }).catch(e => alert('Error')); } });
+        
+        function closeDuplicateCropModal() { document.getElementById('duplicateCropModal')?.classList.remove('show'); }
+        function openEndCropModal() { if (!appState.cropStart) { document.getElementById('noCropModal')?.classList.add('show'); return; } document.getElementById('endCropModal')?.classList.add('show'); }
+        function closeNoCropModal() { document.getElementById('noCropModal')?.classList.remove('show'); }
+        function closeEndCropModal() { document.getElementById('endCropModal')?.classList.remove('show'); }
+        
+        function confirmEndCrop() { closeEndCropModal(); fetch('../api_crop_cycle.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'end' }) }).then(res => res.json()).then(data => { if(data.status === 'success') { if (typeof appState !== 'undefined') appState.cropStart = ""; if (typeof storageSet === 'function') storageSet(STORAGE_KEYS.cropStart, ""); const cInput = document.getElementById('cropStartDate'); if (cInput) cInput.value = new Date().toISOString().split('T')[0]; toggleCropFormUI(false); if (typeof window.loadCropCycle === 'function') window.loadCropCycle(); if (typeof showToast === 'function') showToast(data.message); } else { alert(data.message); } }).catch(e => alert('Error')); }
+        
+        function openResetModal() { document.getElementById('resetSettingsModal')?.classList.add('show'); }
+        function closeResetModal() { document.getElementById('resetSettingsModal')?.classList.remove('show'); }
+        function confirmResetSettings() { closeResetModal(); const fd = { temp_min: 25, temp_max: 30, humidity_min: 60, humidity_max: 90, soil_moisture_min: 60, soil_moisture_max: 80, seedling_light_on_hour: 6, seedling_light_off_hour: 18, growth_light_on_hour: 6, growth_light_off_hour: 22 }; fetch('../api_update_setting.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fd) }).then(res => res.json()).then(data => { if(data.status === 'success') { if (typeof showToast === 'function') showToast('รีเซ็ตเรียบร้อย!'); loadSettings(); } else { alert('Error: ' + data.message); } }).catch(e => alert('Error')); }
+
+        function loadSettings() { fetch('../api_get_setting.php').then(res => res.json()).then(data => { if(data.status === 'success') { const s = data.data; document.getElementById('tempMin').value = s.temp_min; document.getElementById('tempMax').value = s.temp_max; document.getElementById('humidityMin').value = s.humidity_min; document.getElementById('humidityMax').value = s.humidity_max; document.getElementById('soilMin').value = s.soil_moisture_min; document.getElementById('soilMax').value = s.soil_moisture_max; let sd = parseInt(s.seedling_light_off_hour) - parseInt(s.seedling_light_on_hour); let gd = parseInt(s.growth_light_off_hour) - parseInt(s.growth_light_on_hour); document.getElementById('seedlingLightOn').value = isNaN(sd) || sd <= 0 ? 12 : sd; document.getElementById('growthLightOn').value = isNaN(gd) || gd <= 0 ? 16 : gd; } }).catch(e => console.error(e)); }
+
+        function openValidationErrorModal(msg) {
+            document.getElementById('validationErrorMessage').innerHTML = msg;
+            document.getElementById('validationErrorModal').classList.add('show');
+        }
+        function closeValidationErrorModal() {
+            document.getElementById('validationErrorModal').classList.remove('show');
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', function(e) { 
+            e.preventDefault(); 
+            
+            const tMin = parseFloat(document.getElementById('tempMin').value);
+            const tMax = parseFloat(document.getElementById('tempMax').value);
+            const hMin = parseFloat(document.getElementById('humidityMin').value);
+            const hMax = parseFloat(document.getElementById('humidityMax').value);
+            const sMin = parseFloat(document.getElementById('soilMin').value);
+            const sMax = parseFloat(document.getElementById('soilMax').value);
+
+            if (tMin >= tMax) {
+                openValidationErrorModal("<b>อุณหภูมิอากาศ</b><br>ค่าต่ำสุด (Min) ต้องน้อยกว่าค่าสูงสุด (Max)");
+                return;
+            }
+            if (hMin >= hMax) {
+                openValidationErrorModal("<b>ความชื้นอากาศ</b><br>ค่าต่ำสุด (Min) ต้องน้อยกว่าค่าสูงสุด (Max)");
+                return;
+            }
+            if (sMin >= sMax) {
+                openValidationErrorModal("<b>ความชื้นดิน</b><br>ค่าต่ำสุด (Min) ต้องน้อยกว่าค่าสูงสุด (Max)");
+                return;
+            }
+
+            openSaveSettingsModal(); 
+        });
+
+        function openSaveSettingsModal() { document.getElementById('saveSettingsModal')?.classList.add('show'); }
+        function closeSaveSettingsModal() { document.getElementById('saveSettingsModal')?.classList.remove('show'); }
+        function confirmSaveSettings() { closeSaveSettingsModal(); const sd = parseInt(document.getElementById('seedlingLightOn').value) || 12; const gd = parseInt(document.getElementById('growthLightOn').value) || 16; const fd = { temp_min: document.getElementById('tempMin').value, temp_max: document.getElementById('tempMax').value, humidity_min: document.getElementById('humidityMin').value, humidity_max: document.getElementById('humidityMax').value, soil_moisture_min: document.getElementById('soilMin').value, soil_moisture_max: document.getElementById('soilMax').value, seedling_light_on_hour: 6, seedling_light_off_hour: 6 + sd, growth_light_on_hour: 6, growth_light_off_hour: 6 + gd }; fetch('../api_update_setting.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fd) }).then(res => res.json()).then(data => { if(data.status === 'success') { if (typeof showToast === 'function') showToast('บันทึกเรียบร้อย!'); loadSettings(); } else { alert('Error: ' + data.message); } }).catch(e => alert('Error')); }
+
+        function checkEndCropInput() {
+            const inputVal = document.getElementById('confirmEndInput').value;
+            const btn = document.getElementById('confirmEndBtn');
+            
+            if (inputVal === 'ยืนยัน') {
+                btn.disabled = false;
+                btn.style.backgroundColor = '#e74c3c';
+                btn.style.borderColor = '#e74c3c';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.backgroundColor = '#cbd5e1';
+                btn.style.borderColor = '#cbd5e1';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+
+        function closeEndCropModalSafe() {
+            closeEndCropModal();
+            const inputEl = document.getElementById('confirmEndInput');
+            if (inputEl) {
+                inputEl.value = '';
+                checkEndCropInput();
+            }
+        }
+
+        function confirmEndCropSafe() {
+            confirmEndCrop(); 
+            const inputEl = document.getElementById('confirmEndInput');
+            if (inputEl) {
+                inputEl.value = '';
+                checkEndCropInput();
+            }
+        }
+    </script>
+</body>
+</html>

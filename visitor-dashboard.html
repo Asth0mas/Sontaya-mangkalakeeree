@@ -1,0 +1,127 @@
+<?php
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oak Sphere | สภาพแวดล้อมสลัดเรดโอ๊ค</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-hero-layout { display: flex; gap: 32px; flex-wrap: wrap; align-items: stretch; width: 100%; }
+        .admin-hero-left { flex: 1; min-width: 350px; display: flex; flex-direction: column; justify-content: center; }
+        .admin-hero-right { flex: 2.5; min-width: 450px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 32px; display: flex; flex-direction: column; justify-content: center; width: 100%; }
+        @media (max-width: 768px) { .admin-hero-right { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 24px; margin-top: 8px; flex: 1;} }
+    </style>
+</head>
+<body data-page="visitor">
+    <div class="app-layout">
+        
+        <header class="mobile-top-header">
+            <div class="mobile-brand">
+                <img src="assets/images/001.svg" alt="Logo" width="28">
+                <strong style="color: #144d53; font-size: 1.1rem;">Oak Sphere</strong>
+            </div>
+            <div class="mobile-actions" style="display: flex; gap: 8px; align-items: center;">
+                <span class="status-pill visitor" style="padding: 4px 10px; font-size: 0.75rem;">ผู้เยี่ยมชม</span>
+                <a href="login.php" class="button-outline" style="padding: 6px 12px; font-size: 0.8rem;">เข้าสู่ระบบ</a>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-mark"><img src="assets/images/001.svg" alt="Oak Sphere Logo"></div>
+                <div class="brand-copy">
+                    <strong>Oak Sphere</strong>
+                    <span>Oak Sphere</span>
+                </div>
+            </div>
+            
+            <ul class="sidebar-nav">
+                <li class="nav-item active" data-target="page-overview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span class="nav-label">ภาพรวม</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <span class="status-pill visitor" style="justify-content: center; width: 100%; margin-bottom: 12px;">ผู้เยี่ยมชม</span>
+                <a href="login.php" class="button-outline" style="text-align: center; display: block; width: 100%;">เข้าสู่ระบบแอดมิน</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <div id="page-overview" class="page-view active">
+                <div class="page-header">
+                    <h2>ภาพรวมระบบ </h2>
+                </div>
+                
+                <section class="summary-banner" id="overview-banner" style="padding: 0; background: none; width: 100%; display: block; margin-bottom: 24px;">
+                    <div style="background: #2b6e63; border-radius: 16px; padding: 32px; width: 100%; box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <div class="admin-hero-layout">
+                            <div class="admin-hero-left">
+                                <div style="margin-bottom: 24px;"><span style="font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; color: #a7f3d0; text-transform: uppercase;">SYSTEM STATUS</span><h2 style="margin-top: 8px; font-size: 1.8rem; color: #ffffff;">สถานะการทำงานปัจจุบัน</h2></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px;">
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px);">
+                                        <div style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 8px;">โหมดปัจจุบัน</div>
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white; line-height: 1.2;" id="modeValue">ควบคุมอัตโนมัติ</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px);">
+                                        <div style="font-size: 0.85rem; color: #a7f3d0; margin-bottom: 8px;">รอบปลูกปัจจุบัน</div>
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white; line-height: 1.2;" id="summaryCycleDays">0 วัน</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-hero-right">
+                                <h3 style="color: #ffffff; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px; font-weight: 600;">สถานะอุปกรณ์ปัจจุบัน</h3>
+                                <div id="deviceStateList" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <div style="display: grid; gap: 24px;">
+                    <div class="panel">
+                        <div class="panel-body">
+                            <div class="section-heading compact-heading">
+                                <div>
+                                    <span class="eyebrow">Real-time Data</span>
+                                    <h2>ค่าเซ็นเซอร์ปัจจุบัน</h2>
+                                </div>
+                                <div class="meta" id="sensorHealthMeta"></div>
+                            </div>
+                            <div class="sensor-status-grid" id="mainSensorGrid"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" id="history">
+                        <div class="panel-body">
+                            <div class="section-heading" style="margin-bottom: 12px;">
+                                <div><span class="eyebrow">Real-Time Dashboard</span><h2>กราฟแสดงผลค่าเซ็นเซอร์</h2></div>
+                            </div>
+                            
+                            <div class="chart-shell" id="chartContainer" style="height: 340px; margin-top: 16px;">
+                                <canvas id="environmentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() { 
+            if (typeof window.loadCropCycle === 'function') { window.loadCropCycle(); }
+        });
+    </script>
+</body>
+</html>
