@@ -1,0 +1,224 @@
+#include <Wire.h>
+#include "Adafruit_SHT31.h"
+#include <BH1750.h>
+#include "Adafruit_VL53L0X.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "LAPTOP-9AT4UROU 6161"; 
+const char* password = "37e58|6Q";         
+
+const String apiSensorUrl = "http://158.108.112.239/sonthaya/api_sensor_update.php";
+const String apiRelayUrl = "http://158.108.112.239/sonthaya/api_get_device_status.php";
+
+const int numRelays = 5;
+String deviceNames[numRelays] = {"cooling", "fan", "mist", "led", "pump"};
+int relayPins[numRelays] = {25, 19, 26, 27, 33};  
+
+Adafruit_SHT31 sht31 = Adafruit_SHT31();
+BH1750 lightMeter;
+Adafruit_VL53L0X lox = Adafruit_VL53L0X(); 
+
+#define SOIL_PIN 32 
+
+unsigned long lastReadTime = 0;
+unsigned long lastDistanceReadTime = 0; 
+unsigned long lastSendTime = 0;
+unsigned long lastRelayTime = 0; 
+
+const unsigned long readInterval = 1000;          
+const unsigned long distanceReadInterval = 60000;
+const unsigned long sendInterval = 2000;  
+const unsigned long relayInterval = 3000; 
+
+float currentTemp = 0.0;
+float currentHum = 0.0;
+float currentLight = 0.0;
+float currentSoil = 0.0;
+float currentPlantHeight = 0.0; 
+
+int errorCountVL = 0; 
+
+void setup() {
+  Serial.begin(115200);
+
+  for (int i = 0; i < numRelays; i++) {
+    pinMode(relayPins[i], OUTPUT);
+    digitalWrite(relayPins[i], LOW); 
+  }
+  
+  pinMode(SOIL_PIN, INPUT_PULLDOWN);
+
+  Serial.println();
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected!");
+
+  Wire.begin();
+  if (!sht31.begin(0x44)) Serial.println("หาเซ็นเซอร์ SHT31 ไม่เจอ!");
+  if (!lightMeter.begin()) Serial.println("หาเซ็นเซอร์ BH1750 ไม่เจอ!");
+  if (!lox.begin()) Serial.println("หาเซ็นเซอร์ VL53L0X ไม่เจอ!");
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - lastReadTime >= readInterval) {
+    lastReadTime = currentMillis;
+
+    currentTemp = sht31.readTemperature();
+    currentHum = sht31.readHumidity();
+    if (isnan(currentTemp)) currentTemp = -1; 
+    if (isnan(currentHum)) currentHum = -1;
+
+    currentLight = lightMeter.readLightLevel();
+    if (currentLight < 0) currentLight = -1; 
+    
+    int soilRaw = analogRead(SOIL_PIN);
+    if (soilRaw == 0 || soilRaw > 4000) { 
+      currentSoil = -1;
+    } else {
+      currentSoil = map(soilRaw, 2500, 990, 0, 100); 
+      if (currentSoil > 100) currentSoil = 100;
+      if (currentSoil < 0) currentSoil = 0;
+    }
+
+    Serial.print("T: "); Serial.print(currentTemp); Serial.print(" | ");
+    Serial.print("H: "); Serial.print(currentHum); Serial.print(" | ");
+    Serial.print("L: "); Serial.print(currentLight); Serial.print(" | ");
+    Serial.print("S: "); Serial.print(currentSoil); Serial.print(" | "); 
+    Serial.print("Dist: "); Serial.println(currentPlantHeight); 
+  }
+
+  if (currentMillis - lastDistanceReadTime >= distanceReadInterval || lastDistanceReadTime == 0) {
+    lastDistanceReadTime = currentMillis;
+    
+    float minDistance = 9999.0;
+    int validReadings = 0;
+
+    for(int i = 0; i < 5; i++) {
+      VL53L0X_RangingMeasurementData_t measure;
+      lox.rangingTest(&measure, false); 
+      
+      if (measure.RangeStatus != 4) {  
+        float currentDist = measure.RangeMilliMeter / 10.0;
+        
+        if (currentDist > 0.0 && currentDist <= 35.0) {
+          if (currentDist < minDistance) {
+            minDistance = currentDist; 
+          }
+          validReadings++;
+        }
+      }
+      delay(50); 
+    }
+
+    if (validReadings > 0 && minDistance != 9999.0) {
+      currentPlantHeight = minDistance; 
+      errorCountVL = 0;
+    } else {
+      errorCountVL++;
+      Serial.println("เซ็นเซอร์ความสูงโดนรบกวน");
+      lox.begin(); 
+    }
+
+    if (errorCountVL >= 5) {
+      Serial.println("\n ตรวจพบเซ็นเซอร์ VL53L0X ค้าง");
+      Serial.println("รีสตาร์ทบอร์ด");
+      delay(2000); 
+      ESP.restart(); 
+    }
+  }
+
+  if (currentMillis - lastSendTime >= sendInterval) {
+    lastSendTime = currentMillis;
+
+    if (WiFi.status() == WL_CONNECTED) {
+      WiFiClient client;
+      HTTPClient http;
+      
+      http.begin(client, apiSensorUrl);
+      http.setTimeout(8000); 
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+      http.addHeader("Connection", "close");
+
+      JsonDocument doc;
+      doc["temp"] = currentTemp;
+      doc["humidity"] = currentHum;
+      doc["light_lux"] = currentLight; 
+      doc["soil_moisture"] = currentSoil; 
+      doc["plant_height"] = currentPlantHeight;
+
+      String requestBody;
+      serializeJson(doc, requestBody);
+
+      int httpResponseCode = http.POST(requestBody);
+      
+      if (httpResponseCode <= 0) {
+        Serial.print("ส่งเซ็นเซอร์ล้มเหลว Error: ");
+        Serial.print(httpResponseCode);
+        Serial.print(" -> ");
+        Serial.println(http.errorToString(httpResponseCode).c_str());
+      } else {
+        Serial.print("ส่งเซ็นเซอร์สำเร็จ Code: ");
+        Serial.println(httpResponseCode);
+      }
+      http.end();
+    }
+  }
+
+  if (currentMillis - lastRelayTime >= relayInterval) {
+    lastRelayTime = currentMillis;
+
+    if (WiFi.status() == WL_CONNECTED) {
+      WiFiClient client;
+      HTTPClient http;
+      
+      http.begin(client, apiRelayUrl);
+      http.setTimeout(8000); 
+      http.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+      http.addHeader("Connection", "close"); 
+      
+      int httpResponseCode = http.GET();
+
+      if (httpResponseCode > 0) {
+        String payload = http.getString();
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+
+        if (!error) {
+          JsonObject devices = doc["devices"];
+          Serial.print("อัปเดตรีเลย์: ");
+          
+          for (int i = 0; i < numRelays; i++) {
+            String devName = deviceNames[i];
+            String status = devices[devName].as<String>(); 
+
+            if (status == "1") {
+              digitalWrite(relayPins[i], HIGH); 
+              Serial.print("[" + devName + "=ON] ");
+            } else if (status == "0") {
+              digitalWrite(relayPins[i], LOW);  
+              Serial.print("[" + devName + "=OFF] ");
+            }
+          }
+          Serial.println();
+        }
+      } else {
+        Serial.print("ดึงรีเลย์ล้มเหลว Error: ");
+        Serial.print(httpResponseCode);
+        Serial.print(" -> ");
+        Serial.println(http.errorToString(httpResponseCode).c_str());
+      }
+      http.end(); 
+    }
+  }
+}
